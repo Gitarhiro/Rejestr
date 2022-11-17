@@ -1,0 +1,163 @@
+#Pierwszy projekt
+
+openapi: 3.0.3
+
+info: 
+  version: '1.0'
+  title: Rejestr Czasu Pracy
+  description: Rejestr mający na celu zapisywanie i odczytywanie czasu pracy, oraz ewentualnie wyszukanie danych wejść.
+  
+servers:
+  - url: https://localhost:{port}/
+    variables:
+      port:
+        enum:
+          - "8080"
+        default: "8080"
+
+paths:
+  /rejestr:
+    get:
+      operationId: getRejestr
+      description: Pokazuje rejestr
+      responses:
+          '200':
+            description: Sukces w pokazaniu listy
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Wejscie'
+          '400':
+            $ref: '#/components/responses/400err'
+
+    post:
+      operationId: wrzucWRejestr
+      description: Pozwala wrzucić do rejestru nowy wpis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wejscie'
+      responses:
+          '200':
+            description: Wykonano wpis w rejestrze
+            
+          '400':
+            $ref: '#/components/responses/400err'       
+  /aktualizuj:
+    post:
+      operationId: aktualizujRejestr
+      description: Pozwala zaktualizować wpis w rejestrze o danym ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Update'
+      responses:
+        '200':
+          description: Zaktualizowano wpis w rejestrze
+        '400':
+          $ref: '#/components/responses/400err'
+
+  /szukaj/uzytkownik/{Nazwa_użytkownika}:                     
+    get:
+      operationId: szukajUzy
+      description: Wpisy do rejestru danego użytkownika
+      parameters:
+        - name: Nazwa_użytkownika
+          in: path
+          required: true
+          schema:
+            type: string
+      
+      responses:
+        '200':
+          description: Użytkownik znajduje się w rejestrze
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wejscie'
+  
+        '400':
+          $ref: '#/components/responses/400err'
+                      
+  /szukaj/projekt/{Nazwa_projektu}:                     
+    get:
+      operationId: szukajPro
+      description: Wpisy do rejestru z danego projektu
+      parameters:
+        - name: Nazwa_projektu
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Projekt znajduje się w rejestrze
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wejscie'
+        '400':
+          $ref: '#/components/responses/400err'
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    Wejscie:
+      type: object
+      required:
+        - uzy
+        - data
+        - projekt
+        - czas
+        - opis
+      properties:
+        uzy:
+          type: string
+        dat:
+          type: string
+          format: date
+        projekt:
+          type: string
+        czas:
+          type: integer
+        opis:
+          type: string
+        id:
+          type: integer
+
+    Rejestr:
+      type: array
+      items:
+        $ref: "#/components/schemas/Wejscie"
+
+    Update:
+      type: object
+      required:
+        - id
+        - Edyt
+        - Edycja
+      properties:
+        id:
+          type: integer
+        Edyt:
+          type: string
+        Edycja:
+          type: string
+
+  responses:
+    400err:
+      description: Nieudane żądanie
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
